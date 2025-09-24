@@ -1,5 +1,3 @@
-from src.utils.training import HFCache
-HFCache()
 import torch
 from lightning.pytorch.cli import LightningCLI
 
