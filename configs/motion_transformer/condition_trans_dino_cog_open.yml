@@ -1,0 +1,193 @@
+# lightning.pytorch==2.2.1
+seed_everything: 42
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: 8
+  num_nodes: 1
+  precision: bf16-true
+  logger:
+    class_path: WandbLogger
+    init_args:
+      project: 'PVG'
+      entity: 'pvg-nju' # team name
+      tags:
+        - 'ConditionTransformer'
+        - 'train'
+        - 'dataset:coin cross k400 ht-step'
+  callbacks:
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: 'step'
+    - class_path: ModelSummary
+      init_args:
+        max_depth: 3
+    - class_path: ModelCheckpoint
+      init_args:
+        every_n_train_steps: 2000
+        save_top_k: -1
+        save_last: true
+    - src.utils.training.IncrementalCheckpoint
+    - src.utils.training.WandbCodeLogger
+  fast_dev_run: null
+  max_epochs: null
+  min_epochs: null
+  max_steps: 50000
+  min_steps: null
+  max_time: null
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: null
+  overfit_batches: 0.0
+  val_check_interval: 2000
+  check_val_every_n_epoch: null
+  num_sanity_val_steps: 2
+  log_every_n_steps: 10
+  enable_checkpointing: null
+  enable_progress_bar: null
+  enable_model_summary: null
+  accumulate_grad_batches: 1
+  gradient_clip_val: 0.25
+  gradient_clip_algorithm: null
+  deterministic: null
+  benchmark: true
+  inference_mode: true
+  use_distributed_sampler: true
+  profiler: null
+  detect_anomaly: false
+  barebones: false
+  plugins: null
+  sync_batchnorm: false
+  reload_dataloaders_every_n_epochs: 0
+  default_root_dir: null
+model:
+  class_path: src.projects.condition.ActionTransformer
+  init_args:
+    optimizer:
+      class_path: torch.optim.AdamW
+      init_args:
+        lr: 1e-4
+    full_trainable_modules:
+      - 'transformer' # query transformer
+      - 'condition_proj'
+
+    lora_rank: 256
+    lora_trainable_modules: [ ]
+    freeze_modules:
+      - "condition_model"
+      - "vision_model"
+      - 'vision_proj'
+
+    condition_model:
+      class_path: src.projects.condition.DINOImageEmbedder
+      init_args:
+        model: facebook/dinov2-large
+        freeze: true
+
+    condition_proj:
+      class_path: src.projects.condition.Resampler
+      init_args:
+        dim: 1024
+        depth: 4
+        dim_head: 64
+        heads: 12
+        num_queries: 25
+        embedding_dim: 1024
+        output_dim: 1024
+        ff_mult: 4
+
+    vision_model:
+      class_path: src.projects.condition.VideoMAEEmbedder
+      init_args:
+        freeze: true
+
+    vision_proj:
+      class_path: src.projects.condition.Resampler
+      init_args:
+        dim: 1024
+        depth: 4
+        dim_head: 64
+        heads: 12
+        num_queries: 25
+        embedding_dim: 768
+        output_dim: 1024
+        ff_mult: 4
+        ckpt_path: checkpoints/CogVideoX/motion_proj.ckpt
+
+    condition_pe:
+      class_path: src.projects.condition.SinusoidPositionalEmbeddings
+      init_args:
+        dim: 1024
+        max_length: 2560
+
+    vision_pe:
+      class_path: src.projects.condition.SinusoidPositionalEmbeddings
+      init_args:
+        dim: 1024
+        max_length: 256
+
+    transformer:
+      class_path: torch.nn.TransformerEncoder
+      init_args:
+        num_layers: 4
+        encoder_layer:
+          class_path: torch.nn.TransformerEncoderLayer
+          init_args:
+            d_model: 1024
+            nhead: 16
+            dim_feedforward: 4096
+            dropout: 0.0
+            activation: gelu
+            batch_first: true
+            norm_first: false
+            bias: true
+
+
+
+data:
+  class_path: src.data.VideoDataModule
+  init_args:
+    video_size:
+      - 224
+      - 224
+    video_length: 16
+    # probability of dropping the text prompt
+    uncond_text_ratio: 0.00
+    uncond_video_ratio: 0.00
+    prompt_type: llm
+    use_ref_frame: false
+    train_annotation_path:
+      - "datasets/OpenVid-1M/data/openvid-1m.parquet"
+    val_annotation_path:
+      - "datasets/OpenVid-1M/data/openvid-1k.parquet"
+    test_annotation_path:
+      - "datasets/OpenVid-1M/data/openvid-1k.parquet"
+    video_dir: datasets/resized
+    train_transforms: [ ]
+    train_clip_selector:
+      class_path: src.data.clip_selector.AllSelector
+
+    val_clip_selector:
+      class_path: src.data.clip_selector.AllSelector
+
+    test_clip_selector:
+      class_path: src.data.clip_selector.AllSelector
+
+    num_workers: 10
+    prefetch_factor: 2
+    train_batch_size: 8
+    val_batch_size: 16
+    test_batch_size: 16
+    collate_fn: src.data.dataset.collate_fn
+    tokenizer_model: null
+    sampling_config: # video sampling rate (fps) and its probability, i.e. {4: 0.2, 8: 0.5, 12: 0.3}
+      8: 0.33
+      10: 0.34
+      12: 0.33
+    ref_video_type: "rag_text"
+    rag_prompt_type: motion
+    rag_db_path: datasets/rag/openvid.db
+    ref_video_num: 9
+
+#ckpt_path: null

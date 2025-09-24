@@ -1,0 +1,272 @@
+# lightning.pytorch==2.2.1
+seed_everything: 42
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: 8
+  num_nodes: 1
+  precision: bf16-true
+  logger:
+    class_path: WandbLogger
+    init_args:
+      project: 'PVG'
+      entity: 'pvg-nju' # team name
+      tags:
+        - 'Res:1024x576'
+        - 'Frm:16'
+        - 'SVDBaseline'
+        - 'Ref:rag'
+        - 'train'
+        - 'dataset:openvid'
+  callbacks:
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: 'step'
+    - class_path: ModelSummary
+      init_args:
+        max_depth: 3
+    - class_path: ModelCheckpoint
+      init_args:
+        every_n_train_steps: 2000
+        save_top_k: -1
+        save_last: true
+    - src.utils.training.IncrementalCheckpoint
+    - src.metrics.callbacks.FVDMetric
+    - src.metrics.callbacks.FIDMetric
+    - src.metrics.callbacks.MotionMetric
+    - src.metrics.callbacks.MAEActionMetric
+    - src.metrics.callbacks.ClipV2VMetric
+    - src.metrics.callbacks.DINOMetric
+    - src.utils.training.WandbVideoLogger
+    - src.utils.training.WandbCodeLogger
+    - src.metrics.callbacks.SaveSampleMetrics
+    - class_path: src.utils.training.SaveVideo
+      init_args:
+        type: 'generate'
+    - class_path: src.utils.training.SaveVideo
+      init_args:
+        type: 'gt'
+  fast_dev_run: null
+  max_epochs: null
+  min_epochs: null
+  max_steps: 200000
+  min_steps: null
+  max_time: null
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: null
+  overfit_batches: 0.0
+  val_check_interval: 2000
+  check_val_every_n_epoch: null
+  num_sanity_val_steps: 2
+  log_every_n_steps: 10
+  enable_checkpointing: null
+  enable_progress_bar: null
+  enable_model_summary: null
+  accumulate_grad_batches: 1
+  gradient_clip_val: 0.5
+  gradient_clip_algorithm: null
+  deterministic: null
+  benchmark: true
+  inference_mode: true
+  use_distributed_sampler: true
+  profiler: null
+  detect_anomaly: false
+  barebones: false
+  plugins: null
+  sync_batchnorm: false
+  reload_dataloaders_every_n_epochs: 0
+  default_root_dir: null
+model:
+  class_path: src.projects.svd.module.SVDCTModule
+  init_args:
+    optimizer:
+      class_path: torch.optim.AdamW
+      init_args:
+        lr: 5e-5
+    full_trainable_modules:
+      - 'condition_transformer.transformer' # condition transformer
+      - 'condition_transformer.condition_proj'
+      - 'condition_transformer.vision_proj'
+      - unet.down_blocks.0.attentions.0.transformer_blocks.0.attn2.processor
+      - unet.down_blocks.0.attentions.1.transformer_blocks.0.attn2.processor
+      - unet.down_blocks.1.attentions.0.transformer_blocks.0.attn2.processor
+      - unet.down_blocks.1.attentions.1.transformer_blocks.0.attn2.processor
+      - unet.down_blocks.2.attentions.0.transformer_blocks.0.attn2.processor
+      - unet.down_blocks.2.attentions.1.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.1.attentions.0.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.1.attentions.1.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.1.attentions.2.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.2.attentions.0.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.2.attentions.1.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.2.attentions.2.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.3.attentions.0.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.3.attentions.1.transformer_blocks.0.attn2.processor
+      - unet.up_blocks.3.attentions.2.transformer_blocks.0.attn2.processor
+      - unet.mid_block.attentions.0.transformer_blocks.0.attn2.processor
+    lora_trainable_modules: [ ]
+    lora_rank: 256
+    freeze_modules:
+      - "image_encoder"
+      - "vae"
+      - "unet"
+      - "condition_transformer"
+    adapter_modules:
+      - down_blocks.0.attentions.0.transformer_blocks.0.attn2.processor
+      - down_blocks.0.attentions.1.transformer_blocks.0.attn2.processor
+      - down_blocks.1.attentions.0.transformer_blocks.0.attn2.processor
+      - down_blocks.1.attentions.1.transformer_blocks.0.attn2.processor
+      - down_blocks.2.attentions.0.transformer_blocks.0.attn2.processor
+      - down_blocks.2.attentions.1.transformer_blocks.0.attn2.processor
+      - up_blocks.1.attentions.0.transformer_blocks.0.attn2.processor
+      - up_blocks.1.attentions.1.transformer_blocks.0.attn2.processor
+      - up_blocks.1.attentions.2.transformer_blocks.0.attn2.processor
+      - up_blocks.2.attentions.0.transformer_blocks.0.attn2.processor
+      - up_blocks.2.attentions.1.transformer_blocks.0.attn2.processor
+      - up_blocks.2.attentions.2.transformer_blocks.0.attn2.processor
+      - up_blocks.3.attentions.0.transformer_blocks.0.attn2.processor
+      - up_blocks.3.attentions.1.transformer_blocks.0.attn2.processor
+      - up_blocks.3.attentions.2.transformer_blocks.0.attn2.processor
+      - mid_block.attentions.0.transformer_blocks.0.attn2.processor
+
+    pretrained_model_path: stabilityai/stable-video-diffusion-img2vid
+
+    load_model_kwargs:
+      module_ckpt: checkpoints/SVD/Motion-Adapter.ckpt
+
+    condition_noise_config:
+      mean: -3.0
+      std: 0.5
+    latents_noise_config:
+      mean: 0.7
+      std: 1.6
+
+    eval_pipeline_call_kwargs:
+      num_frames: 16
+      width: &width 1024
+      height: &height 576
+      decode_chunk_size: 8
+    #      num_inference_steps: 25
+    #      min_guidance_scale: 1
+    #      max_guidance_scale: 3
+    #      noise_aug_strength: 0.02
+
+    condition_transformer:
+      class_path: src.projects.condition.ActionTransformer
+      init_args:
+        ckpt_path: checkpoints/SVD/motion_transformer.ckpt
+        condition_model:
+          class_path: src.projects.condition.DINOImageEmbedder
+          init_args:
+            model: facebook/dinov2-large
+            freeze: true
+        #        compile: true
+
+        condition_proj:
+          class_path: src.projects.condition.Resampler
+          init_args:
+            dim: 1024
+            depth: 4
+            dim_head: 64
+            heads: 12
+            num_queries: 25
+            embedding_dim: 1024
+            output_dim: 1024
+            ff_mult: 4
+
+        vision_model:
+          class_path: src.projects.condition.VideoMAEEmbedder
+          init_args:
+            freeze: true
+        #        compile: true
+
+        vision_proj:
+          class_path: src.projects.condition.Resampler
+          init_args:
+            dim: 1024
+            depth: 4
+            dim_head: 64
+            heads: 12
+            num_queries: 25
+            embedding_dim: 768
+            output_dim: 1024
+            ff_mult: 4
+            ckpt_path: checkpoints/SVD/motion_proj.ckpt
+
+        condition_pe:
+          class_path: src.projects.condition.SinusoidPositionalEmbeddings
+          init_args:
+            dim: 1024
+            max_length: 2560
+
+        vision_pe:
+          class_path: src.projects.condition.SinusoidPositionalEmbeddings
+          init_args:
+            dim: 1024
+            max_length: 256
+
+        transformer:
+          class_path: torch.nn.TransformerEncoder
+          init_args:
+            num_layers: 4
+            encoder_layer:
+              class_path: torch.nn.TransformerEncoderLayer
+              init_args:
+                d_model: 1024
+                nhead: 16
+                dim_feedforward: 4096
+                dropout: 0.0
+                activation: gelu
+                batch_first: true
+                norm_first: false
+                bias: true
+
+data:
+  class_path: src.data.VideoDataModule
+  init_args:
+    video_size:
+      - *height
+      - *width
+    video_length: 16
+    # probability of dropping the text prompt
+    uncond_text_ratio: 0.15
+    uncond_video_ratio: 0.15
+    prompt_type: llm
+    use_ref_frame: false
+    train_annotation_path:
+      - "datasets/OpenVid-1M/data/openvid-1m.parquet"
+    val_annotation_path:
+      - "datasets/OpenVid-1M/data/openvid-1k.parquet"
+    test_annotation_path:
+      - "datasets/OpenVid-1M/data/openvid-1k.parquet"
+    video_dir: datasets
+    train_transforms: [ ]
+    train_clip_selector:
+      class_path: src.data.clip_selector.AllSelector
+
+    val_clip_selector:
+      class_path: src.data.clip_selector.RandomSelector
+      init_args:
+        num_clips: 200
+        seed: 42
+    test_clip_selector:
+      class_path: src.data.clip_selector.AllSelector
+
+    num_workers: 4
+    prefetch_factor: 5
+    train_batch_size: 2
+    val_batch_size: 1
+    test_batch_size: 1
+    collate_fn: src.data.dataset.collate_fn
+    tokenizer_model: null
+    sampling_config: # video sampling rate (fps) and its probability, i.e. {4: 0.2, 8: 0.5, 12: 0.3}
+      8: 0.33
+      10: 0.34
+      12: 0.33
+    ref_video_type: "rag_text"
+    rag_prompt_type: motion
+    rag_db_path: datasets/rag/openvid.db
+    ref_video_num: 9
+
+#ckpt_path: null

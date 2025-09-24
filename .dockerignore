@@ -1,0 +1,68 @@
+# Git directories and files
+.git
+.gitignore
+
+# Python cache and bytecode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Log files
+*.log
+
+# Test and coverage files
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Distribution and build files
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Checkpoints and large files
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+
+# Datasets (these should be mounted as volumes)
+datasets/
+
+# Assets that can be downloaded
+assets/
+
+# Documentation and figures
+docs/
+figures/
+
+# Temporary files
+tmp/
+temp/
+
+# Docker related
+docker-compose.yml
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS generated files
+Thumbs.db
