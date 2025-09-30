@@ -165,12 +165,11 @@ MotionRAG/
 If you find MotionRAG useful for your research, please cite our paper:
 
 ```bibtex
-@article{wu2025learning,
-  title={Learning Human Skill Generators at Key-Step Levels},
-  author={Wu, Yilu and Zhu, Chenhui and Wang, Shuai and Wang, Hanlin and Wang, Jing and Zhang, Zhaoxiang and Wang, Limin},
-  journal={arXiv preprint arXiv:2502.08234},
+@inproceedings{zhu2025motionrag,
+  title={MotionRAG: Motion Retrieval-Augmented Image-to-Video Generation},
+  author={Zhu, Chenhui and Wu, Yilu and Wang, Shuai and Wu, Gangshan and Wang, Limin},
+  booktitle={Proceedings of the 39th International Conference on Neural Information Processing Systems},
   year={2025},
-  url={https://arxiv.org/abs/2502.08234}, 
 }
 ```
 
