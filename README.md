@@ -2,9 +2,11 @@
 
 # MotionRAG: Motion Retrieval-Augmented Image-to-Video Generation
 
-[//]: # ([![Paper]&#40;https://img.shields.io/badge/Paper-arXiv:2509.02813-b31b1b.svg&#41;]&#40;https://arxiv.org/abs/2509.02813&#41;)
-
-[//]: # ([![License]&#40;https://img.shields.io/github/license/your-username/MotionRAG&#41;]&#40;LICENSE&#41;)
+<div align="center">
+  <a href=https://huggingface.co/MCG-NJU/MotionRAG target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Models-d96902.svg height=22px></a>
+  <a href=https://github.com/MCG-NJU/MotionRAG target="_blank"><img src= https://img.shields.io/badge/Code-bb8a2e.svg?logo=github height=22px></a>
+  <a href=https://arxiv.org/pdf/2509.26391 target="_blank"><img src=https://img.shields.io/badge/Paper-b5212f.svg?logo=arxiv height=22px></a>
+</div>
 
 </div>
 
