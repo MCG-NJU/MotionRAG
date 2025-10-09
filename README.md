@@ -3,9 +3,10 @@
 # MotionRAG: Motion Retrieval-Augmented Image-to-Video Generation
 
 <div align="center">
-  <a href=https://huggingface.co/MCG-NJU/MotionRAG target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Models-d96902.svg height=22px></a>
-  <a href=https://github.com/MCG-NJU/MotionRAG target="_blank"><img src= https://img.shields.io/badge/Code-bb8a2e.svg?logo=github height=22px></a>
-  <a href=https://arxiv.org/pdf/2509.26391 target="_blank"><img src=https://img.shields.io/badge/Paper-b5212f.svg?logo=arxiv height=22px></a>
+  <a href=https://huggingface.co/MCG-NJU/MotionRAG target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Models-d96902.svg height=26px></a>
+  <a href=https://github.com/MCG-NJU/MotionRAG target="_blank"><img src= https://img.shields.io/badge/Code-bb8a2e.svg?logo=github height=26px></a>
+  <a href=https://arxiv.org/pdf/2509.26391 target="_blank"><img src=https://img.shields.io/badge/Paper-b5212f.svg?logo=arxiv height=26px></a>
+  <a href=https://zhuanlan.zhihu.com/p/1959552951854015546 target="_blank"><img src=https://img.shields.io/badge/Zhihu-B3E2FF.svg?logo=zhihu height=26px></a>
 </div>
 
 </div>
